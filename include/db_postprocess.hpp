@@ -1,5 +1,12 @@
 #pragma once
-#include <vector>
 #include "common.hpp"
+#include <vector>
 
-std::vector<DetBox> db_postprocess_cpu(const float* prob, int w, int h, float thresh, float box_thresh, int max_boxes);
+class DbPostProcessor {
+public:
+    DbPostProcessor(int det_w, int det_h, int roi_w, int roi_h, float det_threshold, float box_threshold);
+    std::vector<TextBox> run(const std::vector<float>& prob);
+private:
+    int det_w_, det_h_, roi_w_, roi_h_;
+    float det_threshold_, box_threshold_;
+};

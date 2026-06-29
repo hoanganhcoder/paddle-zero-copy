@@ -1,13 +1,28 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <cstdint>
 #include <stdexcept>
-#include <sstream>
+#include <iostream>
 
-#define CHECK_CUDA(x) do { cudaError_t e=(x); if(e!=cudaSuccess){ std::ostringstream os; os<<"CUDA error "<<cudaGetErrorString(e)<<" at "<<__FILE__<<":"<<__LINE__; throw std::runtime_error(os.str()); } } while(0)
+#define CHECK_CUDA(call) do { \
+    cudaError_t e = (call); \
+    if (e != cudaSuccess) { \
+        throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(e)); \
+    } \
+} while (0)
 
-struct CropRect { int x=0; int y=0; int w=0; int h=0; };
-struct Size2D { int w=0; int h=0; };
-struct OCRText { std::string text; float score=0.f; };
-struct DetBox { float x1,y1,x2,y2; float score; };
+struct RectI { int x=0,y=0,w=0,h=0; };
+struct TextBox { RectI box; float score=0.0f; };
+struct OcrLine { RectI box; std::string text; float score=0.0f; };
+
+struct GpuFrame {
+    uint8_t* y = nullptr;
+    uint8_t* uv = nullptr;
+    int width = 0;
+    int height = 0;
+    int pitch_y = 0;
+    int pitch_uv = 0;
+    double pts = 0.0;
+    void* owner = nullptr;
+};

@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 apt-get update
-apt-get install -y cmake ninja-build git pkg-config build-essential ffmpeg libavformat-dev libavcodec-dev libavutil-dev
+apt-get install -y build-essential cmake ninja-build git wget unzip pkg-config ffmpeg libavformat-dev libavcodec-dev libavutil-dev
+python -m pip install -U onnxruntime-gpu modelscope huggingface_hub onnx onnxsim
 mkdir -p third_party
-if [ ! -d third_party/video-sdk-samples ]; then
-  git clone --depth 1 https://github.com/NVIDIA/video-sdk-samples.git third_party/video-sdk-samples
+cd third_party
+ORT_VERSION=${ORT_VERSION:-1.22.0}
+ORT_DIR="onnxruntime-linux-x64-gpu-${ORT_VERSION}"
+if [ ! -d "$ORT_DIR" ]; then
+  wget -q --show-progress "https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VERSION}/${ORT_DIR}.tgz"
+  tar -xzf "${ORT_DIR}.tgz"
 fi
-if [ ! -f /usr/include/NvInfer.h ] && [ ! -f /usr/lib/x86_64-linux-gnu/libnvinfer.so ]; then
-  echo "TensorRT headers/libs not found. On Colab, install TensorRT matching CUDA, or use NVIDIA PyTorch/TensorRT container."
-fi
+rm -rf onnxruntime
+ln -s "$ORT_DIR" onnxruntime
+cd ..
+echo "ORT_ROOT=$(pwd)/third_party/onnxruntime"
